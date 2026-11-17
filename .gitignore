@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+node_modules/
+# training and conversion outputs
+train/out/
+train/exports/
+out/
+exports/
+# test screenshots
+shots/
+screenshots/
