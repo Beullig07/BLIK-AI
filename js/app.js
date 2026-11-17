@@ -453,6 +453,7 @@ function setContext(tokens) {
   const cap = state.contextCap;
   $('ctx-fill').style.width = `${Math.min(100, (tokens / cap) * 100).toFixed(2)}%`;
   $('ctx-meter').classList.toggle('full', tokens >= cap);
+  $('ctx-meter').classList.toggle('empty', tokens === 0);
   $('ctx-text').textContent = `${count(tokens)}/${count(cap)}`;
 }
 function setSpeed(tokensPerSecond, ttftMs) {

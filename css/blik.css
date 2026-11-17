@@ -321,7 +321,7 @@ svg.px { display: block; flex: none; fill: currentColor; shape-rendering: crispE
 .progress .bar { margin-bottom: 4px; }
 .meter { flex: 1; min-width: 40px; }
 .meter .bar-fill { background: var(--d50); border-right: 1px solid var(--ink); }
-.meter .bar-fill[style*="width: 0"] { border-right: 0; }
+.meter.empty .bar-fill { border-right: 0; }
 .meter.full .bar-fill { background: var(--ink); }
 
 /* ---- Status strip ---- */

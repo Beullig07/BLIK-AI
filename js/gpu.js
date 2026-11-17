@@ -88,7 +88,7 @@ export function installGpuHooks({ pool, onDevice }) {
     createdBytes: 0, // total bytes of every buffer ever created
     pool: !!pool,
   };
-  if (typeof GPUDevice === 'undefined' || typeof GPUBuffer === 'undefined') return stats;
+  if (typeof GPUDevice === 'undefined' || typeof GPUBuffer === 'undefined' || typeof GPUBufferUsage === 'undefined') return stats;
 
   const POOL_MIN = MIB;
   const POOL_PER_KEY = 12;
