@@ -1,0 +1,13 @@
+# For finetune_qlora.py and merge_lora.py (on the training machine).
+# Install PyTorch first, from pytorch.org, in a build that supports your GPU:
+# an RTX 50-series card needs a CUDA 12.8 or newer build (PyTorch 2.7 or newer).
+torch>=2.7
+transformers>=5.17
+peft>=0.21
+accelerate>=1.10
+bitsandbytes>=0.48
+huggingface_hub>=1.0
+
+# For to_q4f16.py, add_num_logits_to_keep.py, check_onnx.py, prepare_repo.py.
+onnx>=1.22
+onnxruntime>=1.30

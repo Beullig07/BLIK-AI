@@ -43,6 +43,12 @@ function locate(url) {
   return { dirs: parts.slice(0, -1), name: parts[parts.length - 1] };
 }
 
+/** Where `url` is kept, as a path under the cache folder (the form listFiles() reports). */
+export function storedPath(url) {
+  const { dirs, name } = locate(url);
+  return [...dirs, name].join('/');
+}
+
 async function dirFor(dirs, create) {
   let dir = await rootDir(create);
   for (const d of dirs) dir = await dir.getDirectoryHandle(d, { create });

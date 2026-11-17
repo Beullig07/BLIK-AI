@@ -84,7 +84,7 @@ env.backends.onnx.wasm.proxy = false;
 
 const fileUrl = (path) => `${HUB}${MODEL.repo}/resolve/${encodeURIComponent(MODEL.revision)}/${path}`;
 /** The folder this model's files live under in OPFS (as opfs.listFiles reports paths). */
-const storedPrefix = `${new URL(HUB).host}/${MODEL.repo}/resolve/${MODEL.revision}/`.replace(/[^\w.@+/-]/g, '_');
+const storedPrefix = opfs.storedPath(fileUrl('x')).slice(0, -1);
 
 // ---- State --------------------------------------------------------------------
 

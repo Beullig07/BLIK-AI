@@ -3,18 +3,20 @@
 // the model's output.
 //
 //   node tests/serve.cjs &
-//   node tests/pool.cjs [prompt tokens, default 2100]
+//   node tests/pool.cjs [approximate prompt tokens, default 3300]
 //
 // Background: ONNX Runtime keeps spare GPU buffers per size bucket. One KV
 // cache tensor of this model is 1,024 bytes per token, so past 2,048 tokens
 // they need the 4 MiB bucket, which keeps fewer spares than a decode step
 // uses (microsoft/onnxruntime#33751). This test counts what really happens.
 //
-// Slow on a software GPU: reading 2,100 tokens can take tens of minutes.
+// The default prompt lands a little over 3,000 tokens, where a decode step
+// starts to need more 4 MiB buffers than ONNX Runtime keeps spare.
+// Slow on a software GPU: reading 3,000 tokens takes the better part of an hour.
 
 const { launch, openHarness, mib } = require('./browser.cjs');
 
-const target = Number(process.argv[2]) || 2100;
+const target = Number(process.argv[2]) || 3300;
 const check = (ok, what) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${what}`);
   if (!ok) process.exitCode = 1;
@@ -27,8 +29,9 @@ const lines = [];
 for (let i = 0; lines.length * 13.2 < target - 40; i++) {
   lines.push(`Item ${i + 1}: the ${colours[i % 7]} ${things[i % 6]} holds ${((i * 7) % 23) + 2} parts.`);
 }
-const messages = [{ role: 'user', content: `${lines.join(' ')}\n\nHow many parts does item 2 hold? Answer with the number only.` }];
-const params = { temperature: 0, topK: 50, topP: 1, repetitionPenalty: 1.05, maxNewTokens: 10, contextCap: 4096 };
+// A question with a long answer, so there are enough decode steps to count.
+const messages = [{ role: 'user', content: `${lines.join(' ')}\n\nCopy out items 1 to 4 again, word for word.` }];
+const params = { temperature: 0, topK: 50, topP: 1, repetitionPenalty: 1.05, maxNewTokens: 14, contextCap: 4096 };
 
 async function run(context, query) {
   const page = context.pages()[0] || (await context.newPage());
@@ -107,6 +110,7 @@ function report(name, r) {
     check(withPool.pool && !without.pool, 'the two runs differ only in the pool');
     check(withPool.steps.map((s) => s.id).join() === without.steps.map((s) => s.id).join(), 'the pool does not change the tokens generated');
     check(withPool.done.context > 2048, `the context went past 2,048 tokens (${withPool.done.context})`);
+    check(withPool.steps.length >= 6, `enough decode steps to measure (${withPool.steps.length})`);
     check(a.createdPerToken <= b.createdPerToken, `while writing, the pool creates no more buffers per token (${a.createdPerToken.toFixed(2)} with, ${b.createdPerToken.toFixed(2)} without)`);
     console.log(`reply: ${JSON.stringify(withPool.steps.map((s) => s.id).length)} tokens`);
   } catch (error) {

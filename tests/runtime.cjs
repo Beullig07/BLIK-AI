@@ -92,7 +92,7 @@ const base = { temperature: 0, topK: 50, topP: 1, repetitionPenalty: 1.05, maxNe
       console.log(`persisted        ${r.persisted}`);
       check(r.session.device === 'webgpu', 'the session runs on the WebGPU execution provider');
       check(r.session.numLogitsToKeep, 'the graph has a num_logits_to_keep input');
-      check(r.gpu.live > 500 * 1048576, `the weights are in GPU buffers (${mib(r.gpu.live)} live)`);
+      check(r.gpu.live >= r.weights.bytes * 0.9, `the weights are in GPU buffers (${mib(r.gpu.live)} live for ${mib(r.weights.bytes)} of weights)`);
       check(r.weights.largest < 300 * 1048576, `no weights read was larger than 300 MiB (largest ${mib(r.weights.largest)})`);
       check(r.stored.weightsComplete, 'the weights are stored complete in OPFS');
     }
