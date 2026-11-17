@@ -465,7 +465,7 @@ async function generate({ id, messages, params }) {
         kept: step.kept,
         entropy: step.entropy,
         context: total + index + 1,
-        ...(index % 8 === 0 && { gpu: gpuSnapshot() }),
+        gpu: gpuSnapshot(),
       });
     });
     const streamer = new TextStreamer(tokenizer, {

@@ -46,8 +46,8 @@ async function launch({ profile, viewport, deviceScaleFactor, isMobile, hasTouch
 }
 
 /** Opens the worker harness and returns helpers to send messages and wait for replies. */
-async function openHarness(context, { quiet = false } = {}) {
-  const page = context.pages()[0] || (await context.newPage());
+async function openHarness(context, { quiet = false, query = '' } = {}) {
+  const page = await context.newPage();
   const messages = [];
   const waiters = new Set();
   await page.exposeFunction('blikMessage', (message) => {
@@ -59,7 +59,7 @@ async function openHarness(context, { quiet = false } = {}) {
   });
   page.on('pageerror', (error) => console.log(`  [pageerror] ${error.message}`));
   page.on('crash', () => console.log('  [page crashed]'));
-  await page.goto(URL_BASE + 'tests/harness.html');
+  await page.goto(URL_BASE + 'tests/harness.html' + query);
 
   const send = (message) => page.evaluate((m) => window.blikSend(m), message);
   /** Resolves with the first message matching `test`; rejects on an error message or timeout. */

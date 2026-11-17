@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BLIK llm">
+<meta name="description" content="BLIK llm: a 1.2B language model running on this device's GPU, in the browser.">
+<title>BLIK llm</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M0 0h16v16H0z'/%3E%3Cpath d='M5 3h6v1H5zM3 4h2v1H3zM11 4h2v1h-2zM2 5h1v1H2zM13 5h1v1h-1zM1 6h1v1H1zM14 6h1v1h-1zM0 7h1v2H0zM15 7h1v2h-1zM1 9h1v1H1zM14 9h1v1h-1zM2 10h1v1H2zM13 10h1v1h-1zM3 11h2v1H3zM11 11h2v1h-2zM5 12h6v1H5zM6 5h4v1H6zM5 6h6v4H5zM6 10h4v1H6z'/%3E%3Cpath fill='%23fff' d='M6 6h2v2H6z'/%3E%3C/svg%3E">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="vendor/fonts/jersey-15/jersey-15-latin-400-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="vendor/fonts/w95fa/win95fa-latin-400-normal.woff2">
+<link rel="stylesheet" href="css/blik.css">
+</head>
+<body>
+
+<div id="shell">
+
+  <header id="menubar" role="menubar" aria-label="Menu bar">
+    <button class="menu-title menu-logo" type="button" data-menu="menu-blik" aria-haspopup="true" aria-label="BLIK menu">
+      <svg class="px" viewBox="0 0 16 12" width="16" height="12" aria-hidden="true"><path d="M5 1h6v1H5zM3 2h2v1H3zM11 2h2v1h-2zM2 3h1v1H2zM13 3h1v1h-1zM1 4h1v1H1zM14 4h1v1h-1zM0 5h1v2H0zM15 5h1v2h-1zM1 7h1v1H1zM14 7h1v1h-1zM2 8h1v1H2zM13 8h1v1h-1zM3 9h2v1H3zM11 9h2v1h-2zM5 10h6v1H5zM6 3h4v1H6zM5 4h1v4H5zM8 4h3v2H8zM6 6h5v2H6zM6 8h4v1H6z"/></svg>
+    </button>
+    <button class="menu-title" type="button" data-menu="menu-chat" aria-haspopup="true">Chat</button>
+    <button class="menu-title" type="button" data-menu="menu-model" aria-haspopup="true">Model</button>
+    <span class="menubar-fill"></span>
+    <span class="menubar-state" id="bar-state" aria-live="polite"></span>
+  </header>
+
+  <div class="menu" id="menu-blik" role="menu" hidden>
+    <button type="button" role="menuitem" data-action="about">About BLIK llm…</button>
+  </div>
+  <div class="menu" id="menu-chat" role="menu" hidden>
+    <button type="button" role="menuitem" data-action="new-chat">New chat</button>
+    <button type="button" role="menuitem" data-action="stop">Stop writing</button>
+  </div>
+  <div class="menu" id="menu-model" role="menu" hidden>
+    <button type="button" role="menuitem" data-action="load">Load model</button>
+    <hr>
+    <button type="button" role="menuitem" data-action="purge">Delete downloaded files…</button>
+  </div>
+
+  <main id="desk">
+    <section class="window" id="chat-window" aria-label="Chat">
+      <div class="titlebar">
+        <span class="title">BLIK llm</span>
+      </div>
+      <div class="infobar">
+        <span id="info-model"></span>
+        <span id="info-state"></span>
+      </div>
+
+      <div class="pane">
+        <div class="scroll" id="messages" tabindex="0" aria-live="polite">
+
+          <div class="loader" id="loader">
+            <div class="loader-head">
+              <svg class="px loader-icon" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path d="M8 4h16v1H8zM7 5h1v22H7zM24 5h1v22h-1zM8 27h16v1H8zM10 7h12v1H10zM10 8h1v9h-1zM21 8h1v9h-1zM10 17h12v1H10zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM17 12h1v1h-1zM12 14h1v1h-1zM14 14h1v1h-1zM16 14h1v1h-1zM18 14h1v1h-1zM10 20h5v1h-5zM10 22h5v1h-5zM10 24h5v1h-5zM18 20h4v1h-4zM18 21h1v3h-1zM21 21h1v3h-1zM18 24h4v1h-4zM4 8h3v1H4zM4 12h3v1H4zM4 16h3v1H4zM4 20h3v1H4zM4 24h3v1H4zM25 8h3v1h-3zM25 12h3v1h-3zM25 16h3v1h-3zM25 20h3v1h-3zM25 24h3v1h-3z"/></svg>
+              <div>
+                <div class="loader-name" id="loader-name"></div>
+                <div id="loader-sub"></div>
+              </div>
+            </div>
+
+            <div class="alert" id="crash-note" hidden>
+              <svg class="px" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M7 1h2v1H7zM6 2h1v2H6zM9 2h1v2H9zM5 4h1v2H5zM10 4h1v2h-1zM4 6h1v2H4zM11 6h1v2h-1zM3 8h1v2H3zM12 8h1v2h-1zM2 10h1v2H2zM13 10h1v2h-1zM1 12h1v2H1zM14 12h1v2h-1zM1 14h14v1H1zM7 5h2v5H7zM7 11h2v2H7z"/></svg>
+              <div id="crash-text"></div>
+            </div>
+
+            <dl class="checks" id="checks"></dl>
+
+            <div class="alert" id="problem" hidden>
+              <svg class="px" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M7 1h2v1H7zM6 2h1v2H6zM9 2h1v2H9zM5 4h1v2H5zM10 4h1v2h-1zM4 6h1v2H4zM11 6h1v2h-1zM3 8h1v2H3zM12 8h1v2h-1zM2 10h1v2H2zM13 10h1v2h-1zM1 12h1v2H1zM14 12h1v2h-1zM1 14h14v1H1zM7 5h2v5H7zM7 11h2v2H7z"/></svg>
+              <div id="problem-text"></div>
+            </div>
+
+            <div class="progress" id="progress" hidden>
+              <div class="bar"><div class="bar-fill" id="progress-fill"></div></div>
+              <div id="progress-text"></div>
+            </div>
+
+            <div class="loader-actions">
+              <button class="btn btn-default" type="button" id="load-button" disabled>Load model</button>
+            </div>
+            <p class="fine" id="loader-fine"></p>
+          </div>
+
+        </div>
+        <div class="scrollbar" id="scrollbar" aria-hidden="true">
+          <button type="button" class="sb-arrow" data-dir="-1" tabindex="-1"><svg class="px" viewBox="0 0 9 5" width="9" height="5"><path d="M4 0h1v1H4zM3 1h3v1H3zM2 2h5v1H2zM1 3h7v1H1zM0 4h9v1H0z"/></svg></button>
+          <div class="sb-track"><div class="sb-thumb" id="sb-thumb"></div></div>
+          <button type="button" class="sb-arrow" data-dir="1" tabindex="-1"><svg class="px" viewBox="0 0 9 5" width="9" height="5"><path d="M0 0h9v1H0zM1 1h7v1H1zM2 2h5v1H2zM3 3h3v1H3zM4 4h1v1H4z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="statusbar" id="statusbar">
+        <div class="status-row">
+          <span class="status-label">CTX</span>
+          <div class="bar meter" id="ctx-meter" role="img" aria-label="Context used"><div class="bar-fill" id="ctx-fill"></div></div>
+          <span id="ctx-text" class="num"></span>
+        </div>
+        <div class="status-row">
+          <span id="speed-text" class="num"></span>
+          <span id="ttft-text" class="num"></span>
+        </div>
+      </div>
+
+      <form class="composer" id="composer" autocomplete="off">
+        <textarea id="input" rows="1" placeholder="Load the model to chat" aria-label="Message" enterkeyhint="send" disabled></textarea>
+        <button class="btn" type="submit" id="send-button" disabled>Send</button>
+      </form>
+    </section>
+  </main>
+
+  <div class="dialog-layer" id="dialog-layer" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <div class="dialog-inner">
+        <div class="dialog-title" id="dialog-title"></div>
+        <div class="dialog-body" id="dialog-body"></div>
+        <div class="dialog-actions" id="dialog-actions"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<noscript><p style="padding:16px;font:16px monospace">BLIK llm needs JavaScript and WebGPU.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
