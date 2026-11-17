@@ -33,8 +33,8 @@ const needsF16 = /f16|fp16/.test(MODEL.dtype);
 
 let ortDevice = null;
 const gpu = installGpuHooks({
-  // tests/pool.cjs starts the worker with ?nopool to measure the difference.
-  pool: GPU_BUFFER_POOL && !new URL(self.location.href).searchParams.has('nopool'),
+  // tests/pool.cjs starts the worker with ?pool or ?nopool to compare the two.
+  pool: (GPU_BUFFER_POOL || new URL(self.location.href).searchParams.has('pool')) && !new URL(self.location.href).searchParams.has('nopool'),
   onDevice(device) {
     ortDevice = device;
     device.lost?.then((info) => post({ type: 'gpu-lost', reason: info.reason ?? '', message: info.message ?? '' }));

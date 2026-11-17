@@ -95,7 +95,7 @@ about it, and what is left:
 |---|---|---|
 | **Download.** Stock loading holds the weights in memory about twice; the tab dies as the download ends, nothing is cached, and every retry dies the same way. | Streams the weights into the browser's private file system (OPFS) in chunks, and resumes a partial download. ONNX Runtime then reads them from the file one tensor at a time. The largest block held in memory is 64 MiB. | Needs about 730 MiB of free storage. Safari may delete a site's storage after 7 days without a visit; the weights then download again. |
 | **Long prompts.** Safari kills its GPU process when a GPU command buffer has not finished 3 s after it was committed. One pass over about 500 to 900 prompt tokens crosses that. | Reads the prompt into the KV cache in chunks sized from the measured speed, about 1 s each, 256 tokens at most. | A phone that is hot or in Low Power Mode is slower; chunks shrink to 16 tokens at the least. Below about 5 tokens per second even that takes over 3 s. |
-| **Context.** GPU memory grows in steps with the context, and past a size ONNX Runtime starts creating and destroying multi-megabyte buffers on every token, which Safari gives back slowly. | Caps the context: 2,048 tokens by default, 4,096 at most. Shows context used. When a chat no longer fits it drops the oldest turns, down to three quarters of the context so that it does not happen every turn, and says so. Pools destroyed GPU buffers. | See the table below. Above 2,048 is not tested on a phone. |
+| **Context.** GPU memory grows in steps as the context crosses 1,024, 2,048 and 4,096 tokens. Past 4,096, by an upstream report, ONNX Runtime also starts creating and destroying multi-megabyte buffers on every token, which Safari gives back slowly. | Caps the context: 2,048 tokens by default, 4,096 at most. Shows context used. When a chat no longer fits it drops the oldest turns, down to three quarters of the context so that it does not happen every turn, and says so. | See the table below. Above 2,048 is not tested on a phone, and 3,117 to 4,096 is not measured anywhere. |
 | **Logits.** Without care, a prompt returns logits for every token: 210 MB for 800 tokens. | Uses a graph with a `num_logits_to_keep` input; only the last position is computed. | A model file without that input brings the problem back; the app warns when it loads one. |
 | **Silent kills.** | A note is left before a load or a reply starts and removed when it ends. If the page opens with the note still there, it says the last run ended in a tab reload, probably out of memory, and at which step. | It cannot tell an out-of-memory kill from the phone killing a backgrounded tab. |
 | **No threads.** GitHub Pages cannot send the headers `SharedArrayBuffer` needs. | Runs ONNX Runtime's WebAssembly single-threaded. The model itself runs on the GPU. | Tokenizing and sampling are on one CPU thread. |
@@ -108,10 +108,17 @@ allocation, the same on any GPU):
 | model loaded, no chat | 728 MiB |
 | up to 1,024 tokens | 777 MiB |
 | up to 2,048 tokens | 827 MiB |
-| 2,049 tokens and up (measured to 2,119) | 927 MiB |
+| 2,049 tokens and up (measured to 3,116) | 927 MiB |
 
 This is only the page's GPU buffers. The tab's total also has the WebAssembly
 runtime, the tokenizer and Safari's own overhead, which were not measured.
+
+While writing at about 3,100 tokens of context, each token created and
+destroyed three small buffers (0.3 MiB in all) and nothing larger. The
+buffer pool that [onnxruntime#33751](https://github.com/microsoft/onnxruntime/issues/33751)
+suggests for larger churn is in `js/gpu.js` but switched off
+(`GPU_BUFFER_POOL` in `js/config.js`): this model gave it nothing to do, so
+its effect is untested.
 
 Other things to know:
 

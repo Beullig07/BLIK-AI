@@ -22,7 +22,7 @@ npm install playwright        # once, anywhere; then: npx playwright install chr
 node tests/serve.cjs &        # serves the repo on http://127.0.0.1:8378/
 node tests/runtime.cjs env load chat reuse long stop sample context
 node tests/resume.cjs         # kills a download partway, then resumes it
-node tests/pool.cjs           # GPU buffer churn past 2,048 tokens (slow)
+node tests/pool.cjs           # GPU buffer use up to about 3,100 tokens (slow)
 node tests/ui.cjs shots open menus keyboard load chat crash
 ```
 
@@ -30,7 +30,7 @@ node tests/ui.cjs shots open menus keyboard load chat crash
 |---|---|
 | `runtime.cjs` | Adapter probe; load (weights streamed to OPFS, read on demand, on the GPU); a greedy chat; KV cache reuse between turns; a long prompt read in chunks gives the same tokens as one pass; stop; seeded sampling with top-p; context cap. |
 | `resume.cjs` | A download interrupted by a killed page resumes from the bytes already stored, and the resumed file loads and answers. |
-| `pool.cjs` | Counts GPU buffers created and destroyed per token as the context grows past 2,048, with and without the buffer pool, and checks the pool does not change the output. |
+| `pool.cjs` | Counts GPU buffers created and destroyed as the context grows to about 3,100 tokens, with the buffer pool on and off, and checks the pool does not change the output. With the default model and the pool on, the pool never engaged (it held and reused nothing); the pool-off run was not completed. |
 | `ui.cjs` | The page itself: load panel, menus, About box, the shell following the visible area, load, a two-turn chat, new chat, and the note shown after a tab is killed mid-load. Saves screenshots. |
 
 Settings are environment variables, listed at the top of `browser.cjs`. The

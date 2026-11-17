@@ -101,7 +101,7 @@ function report(name, r) {
 (async () => {
   const context = await launch();
   try {
-    const withPool = await run(context, '');
+    const withPool = await run(context, '?pool');
     const a = report('with the buffer pool', withPool);
     const without = await run(context, '?nopool');
     const b = report('without the buffer pool', without);

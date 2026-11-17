@@ -33,12 +33,15 @@ export const HUB = 'https://huggingface.co/';
 
 // Context limits, in tokens (prompt plus reply).
 //
-// One KV cache tensor of this model takes 1,024 bytes per token. ONNX Runtime
-// keeps GPU buffers in size buckets (..., 2 MiB, 4 MiB, 8 MiB): past 2,048
-// tokens the cache moves to the 4 MiB bucket, where ONNX Runtime keeps too few
-// spares and starts creating and destroying buffers on every token; past 4,096
-// it moves to the 8 MiB bucket and live GPU memory jumps
-// (microsoft/onnxruntime#33751). So 2,048 is the default and 4,096 the ceiling.
+// One KV cache tensor of this model takes 1,024 bytes per token, and ONNX
+// Runtime keeps GPU buffers in size buckets (..., 1 MiB, 2 MiB, 4 MiB, 8 MiB).
+// Each time the context crosses a bucket, a new set of larger buffers is
+// allocated and the old set stays cached. Measured here, in the page's own
+// GPU buffers: 777 MiB up to 1,024 tokens, 827 MiB up to 2,048, 927 MiB from
+// there to at least 3,116. Past 4,096 the 8 MiB bucket is next; there, by
+// the report in microsoft/onnxruntime#33751, ONNX Runtime keeps fewer spare
+// buffers than a decode step uses and creates and destroys them on every
+// token. So 2,048 is the default and 4,096 the ceiling.
 export const CONTEXT = {
   default: 2048,
   max: 4096,
@@ -71,7 +74,13 @@ export const SAMPLING = {
 // How many next-token candidates the logits window shows.
 export const SHOW_TOP = 8;
 
-// Reuse GPU buffers that ONNX Runtime destroys (see CONTEXT above): without
-// this, every token past 2,048 creates and destroys several 4 MiB buffers,
-// which Safari is slow to give back.
-export const GPU_BUFFER_POOL = true;
+// A pool that keeps GPU buffers of 1 MiB or more that ONNX Runtime destroys
+// and hands them back to the next request of the same size: the workaround
+// from microsoft/onnxruntime#33751 for buffers created and destroyed on every
+// token, which Safari gives back slowly.
+//
+// Off, because this model did not need it in testing: up to 3,116 tokens of
+// context ONNX Runtime destroyed no buffer that large, so the pool never held
+// anything, and its effect when it does is untested. If memory climbs during
+// long replies between about 3,000 and 4,096 tokens on the phone, try true.
+export const GPU_BUFFER_POOL = false;
