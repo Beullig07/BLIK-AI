@@ -1,0 +1,3 @@
+*.wasm binary
+*.woff2 binary
+*.min.js -diff
