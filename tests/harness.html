@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>BLIK runtime harness</title>
+<p>Runtime test harness. Driven by tests/runtime.cjs; it has no UI of its own.</p>
+<script type="module">
+  // Starts the worker and forwards every message to the test runner.
+  const worker = new Worker('../js/worker.js' + location.search, { type: 'module' });
+  window.blikLog = [];
+  const forward = (message) => {
+    window.blikLog.push(message);
+    window.blikMessage?.(message);
+  };
+  worker.onmessage = (event) => forward(event.data);
+  worker.onerror = (event) => forward({ type: 'error', where: 'worker-script', message: event.message || 'The worker failed to start.' });
+  window.blikSend = (message) => worker.postMessage(message);
+</script>
