@@ -368,6 +368,10 @@ async function generate({ id, messages, params }) {
   const cap = Math.max(256, Math.min(CONTEXT.max, Math.floor(params.contextCap)));
 
   // The prompt, with the oldest turns dropped until it fits the context.
+  // Once something has to go, keep dropping down to three quarters of the
+  // context: every drop changes the start of the prompt, so the KV cache is
+  // void and the whole prompt is read again. This way that happens once
+  // every few turns, not on every turn.
   let kept = messages.slice();
   let dropped = 0;
   let inputs;
@@ -375,9 +379,11 @@ async function generate({ id, messages, params }) {
   for (;;) {
     inputs = tokenizer.apply_chat_template(kept, { add_generation_prompt: true, return_dict: true });
     total = inputs.input_ids.dims[1];
-    if (total + CONTEXT.replyReserve <= cap) break;
+    const fits = total + CONTEXT.replyReserve <= cap;
+    if (fits && (dropped === 0 || total <= Math.floor(cap * 0.75))) break;
     const first = kept[0]?.role === 'system' ? 1 : 0;
     if (kept.length - first <= 1) {
+      if (fits) break;
       throw new Error(`This message is ${total} tokens. With ${CONTEXT.replyReserve} tokens kept for the reply it does not fit a ${cap}-token context.`);
     }
     kept.splice(first, 1);
