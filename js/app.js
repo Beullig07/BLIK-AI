@@ -453,7 +453,7 @@ function setContext(tokens) {
   const cap = state.contextCap;
   $('ctx-fill').style.width = `${Math.min(100, (tokens / cap) * 100).toFixed(2)}%`;
   $('ctx-meter').classList.toggle('full', tokens >= cap);
-  $('ctx-meter').classList.toggle('empty', tokens === 0);
+  $('ctx-meter').classList.toggle('at-zero', tokens === 0);
   $('ctx-text').textContent = `${count(tokens)}/${count(cap)}`;
 }
 function setSpeed(tokensPerSecond, ttftMs) {
@@ -468,7 +468,6 @@ function send() {
   if (!text || state.busy || !state.loaded || state.gone) return;
   input.value = '';
   autosize();
-  messagesEl.querySelector('.empty')?.remove();
   state.messages.push({ role: 'user', content: text });
   stick = true;
   addMessage('user', text);
